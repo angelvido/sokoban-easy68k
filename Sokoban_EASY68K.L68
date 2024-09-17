@@ -1,0 +1,1331 @@
+00001000 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.16.01
+Created On: 17/09/2024 15:45:33
+
+00000000                             1  *-----------------------------------------------------------
+00000000                             2  * Title      : Sokoban
+00000000                             3  * Written by : Ángel Vidal Domínguez y David Medina Solano
+00000000                             4  * Date       : 27/05/2021
+00000000                             5  * Description: Adaptación propia del famoso juego Sokoban en Easy68K
+00000000                             6  *-----------------------------------------------------------
+00000000                             7  
+00000000                             8  ************VALORES DE LOS COLORES EN HEXADECIMAL
+00000000  =00404040                  9  DRKGRAY EQU $00404040
+00000000  =0000FFFF                 10  YELLOW    EQU $000FFFF
+00000000  =0000FF00                 11  GREEN EQU $0000FF00
+00000000  =00004080                 12  DRKBROWN EQU $00004080 
+00000000  =00004ABA                 13  LIGHTBROWN EQU $00004ABA
+00000000  =00000000                 14  BLACK EQU $00000000
+00000000  =00FFFFFF                 15  WHITE EQU $00FFFFFF
+00000000  =0000CEC6                 16  GREENISHYELLOW EQU $0000CEC6
+00000000                            17  
+00000000                            18  ************VALORES DE LAS POSICIONES PARA LA PARTE GRÁFICA
+00000000  =00000064                 19  ORIX EQU 100
+00000000  =00000064                 20  ORIY EQU 100
+00000000  =00000064                 21  SIZE EQU 100
+00000000                            22  
+00000000                            23  ************CONFIGURACIÓN DEL JUEGO + BUCLE PRINCIPAL DEL JUEGO + FINAL DEL JUEGO 
+00001000                            24      ORG    $1000
+00001000                            25  START
+00001000                            26  CONFIG                              *ACTIVACIÓN DE TECLADO+CONFIGURACIÓN DE PANTALLA+ESTILO DE LETRA
+00001000  103C 003E                 27      MOVE.B #62,D0
+00001004  7201                      28      MOVE.L #1,D1
+00001006  4E4F                      29      TRAP #15
+00001008  7021                      30      MOVE.L #33,D0
+0000100A  223C 04000300             31      MOVE.L #1024*$10000+768,D1
+00001010  4E4F                      32      TRAP #15
+00001012  7015                      33      MOVE.L #21,D0
+00001014  223C 00FFFFFF             34      MOVE.L #$00FFFFFF,D1
+0000101A  243C 03181111             35      MOVE.L #$03181111,D2
+00001020  4E4F                      36      TRAP #15
+00001022  4240                      37      CLR D0
+00001024  4241                      38      CLR D1
+00001026  4242                      39      CLR D2
+00001028                            40  BUCLEPRINCIPAL                      *BUCLE DE LLAMADA A SUBRUTINAS DEL JUEGO              
+00001028  4EB9 00001A46             41      JSR PINTAMAPA
+0000102E  4EB9 00001C4A             42      JSR SHOWTIME
+00001034  4EB9 0000109A             43      JSR TECLA
+0000103A  4EB9 000010D0             44      JSR DELAY
+00001040  4EB9 00001A36             45      JSR BORRAMAPA
+00001046  7C00                      46      MOVE.L #$0,D6
+00001048  4EB9 000010F0             47      JSR ERRORES
+0000104E  BCBC 00000001             48      CMP.L #$1,D6
+00001054  67D2                      49      BEQ BUCLEPRINCIPAL
+00001056  4EB9 0000105C             50      JSR FINMAPA  
+0000105C                            51  FINMAPA                             *FINAL DEL JUEGO
+0000105C  4EB9 00001A36             52      JSR BORRAMAPA
+00001062  4EB9 00001A46             53      JSR PINTAMAPA
+00001068  7015                      54      MOVE.L #21,D0
+0000106A  223C 00FFFFFF             55      MOVE.L #$00FFFFFF,D1
+00001070  243C 03110000             56      MOVE.L #$03110000,D2
+00001076  4E4F                      57      TRAP #15
+00001078  4EB9 00001CE6             58      JSR BLANCO
+0000107E  43F9 0000404A             59      LEA FINAL,A1
+00001084  103C 000B                 60      MOVE.B #11,D0
+00001088  323C 01F9                 61      MOVE.W #0505,D1
+0000108C  4E4F                      62      TRAP #15
+0000108E  103C 0011                 63      MOVE.B #17,D0
+00001092  2207                      64      MOVE.L D7,D1
+00001094  4E4F                      65      TRAP #15
+00001096                            66      
+00001096  FFFF FFFF                 67      SIMHALT
+0000109A                            68      
+0000109A                            69      
+0000109A                            70  ************SUB TECLA  
+0000109A                            71  *IZQUIERDA $25, ARRIBA $26, DERECHA $27 Y ABAJO $28
+0000109A                            72  TECLA
+0000109A  103C 0013                 73      MOVE.B #19,D0
+0000109E  223C 28272625             74      MOVE.L #$28272625,D1
+000010A4  4E4F                      75      TRAP #15
+000010A6  B2BC FF000000             76      CMP.L #$FF000000,D1
+000010AC  6700 0420                 77      BEQ ABAJO
+000010B0  B2BC 00FF0000             78      CMP.L #$00FF0000,D1
+000010B6  6700 05F6                 79      BEQ DERECHA
+000010BA  B2BC 0000FF00             80      CMP.L #$0000FF00,D1
+000010C0  6700 023C                 81      BEQ ARRIBA
+000010C4  B2BC 000000FF             82      CMP.L #$000000FF,D1
+000010CA  6700 07BA                 83      BEQ IZQUIERDA
+000010CE  4E75                      84      RTS
+000010D0                            85      
+000010D0                            86  ************SUB DELAY
+000010D0                            87  DELAY
+000010D0  103C 0017                 88      MOVE.B #23,D0           *RETARDO DEL JUEGO
+000010D4  720A                      89      MOVE.L #10,D1           *10 MILISEGUNDOS DE RETARDO
+000010D6  4E4F                      90      TRAP #15
+000010D8  5285                      91      ADD.L #1,D5
+000010DA  BABC 0000000A             92      CMP.L #10,D5
+000010E0  6700 0004                 93      BEQ SEGUNDO
+000010E4  4E75                      94      RTS
+000010E6                            95  SEGUNDO
+000010E6  5287                      96      ADD.L #1,D7             *COMPENSACIÓN DE MILISEGUNDOS A SEGUNDOS
+000010E8  0485 0000000A             97      SUB.L #10,D5
+000010EE  4E75                      98      RTS
+000010F0                            99  
+000010F0                           100  ************SUB ERROR
+000010F0                           101  ERRORES                     *SUBRUTINA QUE COMPRUEBA SI EL JUEGO ESTA EN UNA SITUACIÓN SIN SALIDA
+000010F0  227C 00004000            102      MOVE.L #MAPA1,A1
+000010F6                           103  BUCLEE  
+000010F6  1019                     104      MOVE.B (A1)+,D0
+000010F8  B03C 0000                105      CMP.B #0,D0
+000010FC  6700 01F6                106      BEQ NUEVAFILAE
+00001100  B03C 0024                107      CMP.B #'$',D0
+00001104  6600 0006                108      BNE NOCAJAE
+00001108  6700 0006                109      BEQ SICAJAE
+0000110C                           110  NOCAJAE
+0000110C  4EF8 10F6                111      JMP BUCLEE
+00001110                           112  SICAJAE
+00001110  7C01                     113      MOVE.L #$1,D6
+00001112  5589                     114      SUB.L #$2,A1
+00001114  1011                     115      MOVE.B (A1),D0
+00001116  0C80 00000023            116      CMPI.L #'#',D0
+0000111C  6700 0032                117      BEQ COMPROBARAYA1
+00001120  0C80 00000025            118      CMPI.L #'%',D0
+00001126  6700 0028                119      BEQ COMPROBARAYA1
+0000112A  5489                     120      ADD.L #$2,A1
+0000112C  1011                     121      MOVE.B (A1),D0
+0000112E  0C80 00000023            122      CMPI.L #'#',D0
+00001134  6700 005E                123      BEQ COMPROBARAYA2
+00001138  0C80 00000024            124      CMPI.L #'$',D0
+0000113E  6700 009C                125      BEQ SIGUIENTECAJA1
+00001142  0C80 00000025            126      CMPI.L #'%',D0
+00001148  6700 004A                127      BEQ COMPROBARAYA2
+0000114C  4EF8 10F6                128      JMP BUCLEE
+00001150                           129  COMPROBARAYA1
+00001150  5289                     130      ADD.L #$1,A1
+00001152  5189                     131      SUB.L #$8,A1
+00001154  1011                     132      MOVE.B (A1),D0
+00001156  0C80 00000023            133      CMPI.L #'#',D0
+0000115C  6700 0130                134      BEQ ERROR
+00001160  0C80 00000025            135      CMPI.L #'%',D0
+00001166  6700 0126                136      BEQ ERROR
+0000116A  5089                     137      ADD.L #$8,A1
+0000116C  5089                     138      ADD.L #$8,A1
+0000116E  1011                     139      MOVE.B (A1),D0
+00001170  0C80 00000023            140      CMPI.L #'#',D0
+00001176  6700 0116                141      BEQ ERROR
+0000117A  0C80 00000024            142      CMPI.L #'$',D0
+00001180  6700 00D2                143      BEQ SIGUIENTECAJA2
+00001184  0C80 00000025            144      CMPI.L #'%',D0
+0000118A  6700 0102                145      BEQ ERROR
+0000118E  5F89                     146      SUB.L #$7,A1
+00001190  4EF8 10F6                147      JMP BUCLEE
+00001194                           148  COMPROBARAYA2
+00001194  5389                     149      SUB.L #$1,A1
+00001196  5089                     150      ADD.L #$8,A1
+00001198  1011                     151      MOVE.B (A1),D0 
+0000119A  0C80 00000023            152      CMPI.L #'#',D0
+000011A0  6700 00EC                153      BEQ ERROR
+000011A4  0C80 00000024            154      CMPI.L #'$',D0
+000011AA  6700 00A8                155      BEQ SIGUIENTECAJA2
+000011AE  0C80 00000025            156      CMPI.L #'%',D0
+000011B4  6700 00D8                157      BEQ ERROR
+000011B8  5189                     158      SUB.L #$8,A1
+000011BA  5189                     159      SUB.L #$8,A1
+000011BC  1011                     160      MOVE.B (A1),D0 
+000011BE  0C80 00000023            161      CMPI.L #'#',D0
+000011C4  6700 00C8                162      BEQ ERROR
+000011C8  0C80 00000025            163      CMPI.L #'%',D0
+000011CE  6700 00BE                164      BEQ ERROR
+000011D2  D3FC 00000009            165      ADD.L #$9,A1
+000011D8  4EF8 10F6                166      JMP BUCLEE
+000011DC                           167  SIGUIENTECAJA1
+000011DC  5389                     168      SUB.L #$1,A1
+000011DE  5089                     169      ADD.L #$8,A1
+000011E0  1011                     170      MOVE.B (A1),D0
+000011E2  5189                     171      SUB.L #$8,A1 
+000011E4  0C80 00000023            172      CMPI.L #'#',D0
+000011EA  6700 002C                173      BEQ ERRORCAJA1
+000011EE  0C80 00000025            174      CMPI.L #'%',D0
+000011F4  6700 0022                175      BEQ ERRORCAJA1
+000011F8  5189                     176      SUB.L #$8,A1
+000011FA  1011                     177      MOVE.B (A1),D0
+000011FC  5089                     178      ADD.L #$8,A1 
+000011FE  0C80 00000023            179      CMPI.L #'#',D0
+00001204  6700 0012                180      BEQ ERRORCAJA1
+00001208  0C80 00000025            181      CMPI.L #'%',D0
+0000120E  6700 0008                182      BEQ ERRORCAJA1
+00001212  5289                     183      ADD.L #$1,A1
+00001214  4EF8 10F6                184      JMP BUCLEE
+00001218                           185  ERRORCAJA1
+00001218  D3FC 00000009            186      ADD.L #$9,A1
+0000121E  1011                     187      MOVE.B (A1),D0 
+00001220  0C80 00000023            188      CMPI.L #'#',D0
+00001226  6700 0066                189      BEQ ERROR
+0000122A  0C80 00000025            190      CMPI.L #'%',D0
+00001230  6700 005C                191      BEQ ERROR
+00001234  5189                     192      SUB.L #$8,A1
+00001236  5189                     193      SUB.L #$8,A1
+00001238  1011                     194      MOVE.B (A1),D0
+0000123A  0C80 00000023            195      CMPI.L #'#',D0
+00001240  6700 004C                196      BEQ ERROR
+00001244  0C80 00000025            197      CMPI.L #'%',D0
+0000124A  6700 0042                198      BEQ ERROR
+0000124E  5089                     199      ADD.L #$8,A1
+00001250  4EF8 10F6                200      JMP BUCLEE
+00001254                           201  SIGUIENTECAJA2
+00001254  5389                     202      SUB.L #$1,A1
+00001256  1011                     203      MOVE.B (A1),D0
+00001258  5289                     204      ADD.L #$1,A1
+0000125A  0C80 00000023            205      CMPI.L #'#',D0
+00001260  6700 002C                206      BEQ ERROR
+00001264  0C80 00000025            207      CMPI.L #'%',D0
+0000126A  6700 0022                208      BEQ ERROR
+0000126E  5289                     209      ADD.L #$1,A1
+00001270  1011                     210      MOVE.B (A1),D0
+00001272  5389                     211      SUB.L #$1,A1
+00001274  0C80 00000023            212      CMPI.L #'#',D0
+0000127A  6700 0012                213      BEQ ERROR
+0000127E  0C80 00000025            214      CMPI.L #'%',D0
+00001284  6700 0008                215      BEQ ERROR
+00001288  5F89                     216      SUB.L #$7,A1
+0000128A  4EF8 10F6                217      JMP BUCLEE    
+0000128E                           218  ERROR   
+0000128E  227C 00004000            219      MOVE.L #MAPA1,A1
+00001294  22BC 23232323            220      MOVE.L #'####',(A1)
+0000129A  5889                     221      ADD.L #$4,A1
+0000129C  22BC 23232000            222      MOVE.L #'## ',(A1)
+000012A2  5889                     223      ADD.L #$4,A1
+000012A4  22BC 23402020            224      MOVE.L #'#@  ',(A1)
+000012AA  5889                     225      ADD.L #$4,A1
+000012AC  22BC 20232300            226      MOVE.L #' ##',(A1)
+000012B2  5889                     227      ADD.L #$4,A1
+000012B4  22BC 23202424            228      MOVE.L #'# $$',(A1)
+000012BA  5889                     229      ADD.L #$4,A1
+000012BC  22BC 20202300            230      MOVE.L #'  #',(A1)
+000012C2  5889                     231      ADD.L #$4,A1
+000012C4  22BC 2320232E            232      MOVE.L #'# #.',(A1)
+000012CA  5889                     233      ADD.L #$4,A1
+000012CC  22BC 202E2300            234      MOVE.L #' .#',(A1)
+000012D2  5889                     235      ADD.L #$4,A1
+000012D4  22BC 23202020            236      MOVE.L #'#   ',(A1)
+000012DA  5889                     237      ADD.L #$4,A1
+000012DC  22BC 20202300            238      MOVE.L #'  #',(A1)
+000012E2  5889                     239      ADD.L #$4,A1
+000012E4  22BC 23232323            240      MOVE.L #'####',(A1)
+000012EA  5889                     241      ADD.L #$4,A1
+000012EC  22BC 23232300            242      MOVE.L #'###',(A1)
+000012F2  4E75                     243      RTS  
+000012F4                           244  NUEVAFILAE
+000012F4  0C11 0000                245      CMP.B #0,(A1)
+000012F8  6600 FDFC                246      BNE BUCLEE
+000012FC  4E75                     247      RTS   
+000012FE                           248  ************SUB ARRIBA
+000012FE                           249  ARRIBA                          *SUBRUTINA QUE PERMITE EL MOVIMIENTO DEL PERSONAJE HACIA ARRIBA SEGÚN LA SITUACIÓN
+000012FE  227C 00004000            250      MOVE.L #MAPA1,A1
+00001304                           251  BUCLEA2  
+00001304  1019                     252      MOVE.B (A1)+,D0
+00001306  B03C 0000                253      CMP.B #0,D0
+0000130A  6700 01B8                254      BEQ NUEVAFILAA2
+0000130E  B03C 0040                255      CMP.B #'@',D0
+00001312  6700 0012                256      BEQ SIPERSA2
+00001316  B03C 002B                257      CMP.B #'+',D0
+0000131A  6600 0006                258      BNE NOPERSA2
+0000131E  6700 0106                259      BEQ SIPERSA2O
+00001322                           260  NOPERSA2
+00001322  4EF8 1304                261      JMP BUCLEA2
+00001326                           262  SIPERSA2
+00001326  93FC 00000009            263      SUB.L #$9,A1
+0000132C  1011                     264      MOVE.B (A1),D0
+0000132E  0C00 0020                265      CMPI.B #' ',D0
+00001332  6700 0036                266      BEQ MOVERARRIBA
+00001336  0C00 0024                267      CMPI.B #'$',D0
+0000133A  6700 0042                268      BEQ COMPROBARCAJAA2
+0000133E  0C00 0025                269      CMPI.B #'%',D0
+00001342  6700 008E                270      BEQ COMPROBARCAJAA2F
+00001346  0C00 002E                271      CMPI.B #'.',D0
+0000134A  6700 000A                272      BEQ MOVEROBJARRIBA
+0000134E  D3FC 00000009            273      ADD.L #$9,A1
+00001354  66AE                     274      BNE BUCLEA2
+00001356                           275  MOVEROBJARRIBA
+00001356  103C 002B                276      MOVE.B #'+',D0
+0000135A  1280                     277      MOVE.B D0,(A1)
+0000135C  5089                     278      ADD.L #$8,A1
+0000135E  103C 0020                279      MOVE.B #' ',D0
+00001362  1280                     280      MOVE.B D0,(A1)
+00001364  5F89                     281      SUB.L #$7,A1
+00001366  4EF8 1304                282      JMP BUCLEA2
+0000136A                           283  MOVERARRIBA
+0000136A  103C 0040                284      MOVE.B #'@',D0
+0000136E  1280                     285      MOVE.B D0,(A1)
+00001370  5089                     286      ADD.L #$8,A1
+00001372  103C 0020                287      MOVE.B #' ',D0
+00001376  1280                     288      MOVE.B D0,(A1)
+00001378  5F89                     289      SUB.L #$7,A1
+0000137A  4EF8 1304                290      JMP BUCLEA2
+0000137E                           291  COMPROBARCAJAA2
+0000137E  5189                     292      SUB.L #$8,A1
+00001380  1011                     293      MOVE.B (A1),D0
+00001382  0C00 0020                294      CMPI.B #' ',D0
+00001386  6700 0016                295      BEQ MOVERCAJAA2
+0000138A  0C00 002E                296      CMPI.B #'.',D0
+0000138E  6700 0028                297      BEQ FIJARCAJAA2
+00001392  5089                     298      ADD.L #$8,A1
+00001394  D3FC 00000009            299      ADD.L #$9,A1
+0000139A  4EF8 1304                300      JMP BUCLEA2
+0000139E                           301  MOVERCAJAA2
+0000139E  103C 0024                302      MOVE.B #'$',D0
+000013A2  1280                     303      MOVE.B D0,(A1)
+000013A4  5089                     304      ADD.L #$8,A1
+000013A6  103C 0040                305      MOVE.B #'@',D0
+000013AA  1280                     306      MOVE.B D0,(A1)
+000013AC  5089                     307      ADD.L #$8,A1
+000013AE  103C 0020                308      MOVE.B #' ',D0
+000013B2  1280                     309      MOVE.B D0,(A1)
+000013B4  4EF8 1304                310      JMP BUCLEA2
+000013B8                           311  FIJARCAJAA2
+000013B8  103C 0025                312      MOVE.B #'%',D0
+000013BC  1280                     313      MOVE.B D0,(A1)
+000013BE  5089                     314      ADD.L #$8,A1
+000013C0  103C 0040                315      MOVE.B #'@',D0
+000013C4  1280                     316      MOVE.B D0,(A1)
+000013C6  5089                     317      ADD.L #$8,A1
+000013C8  103C 0020                318      MOVE.B #' ',D0
+000013CC  1280                     319      MOVE.B D0,(A1)
+000013CE  4EF8 1304                320      JMP BUCLEA2
+000013D2                           321  COMPROBARCAJAA2F
+000013D2  5189                     322      SUB.L #$8,A1
+000013D4  1011                     323      MOVE.B (A1),D0
+000013D6  0C00 0020                324      CMPI.B #' ',D0
+000013DA  6700 0016                325      BEQ MOVERCAJAA2F
+000013DE  0C00 002E                326      CMPI.B #'.',D0
+000013E2  6700 0028                327      BEQ FIJARCAJAA2F
+000013E6  5089                     328      ADD.L #$8,A1
+000013E8  D3FC 00000009            329      ADD.L #$9,A1
+000013EE  4EF8 1304                330      JMP BUCLEA2
+000013F2                           331  MOVERCAJAA2F
+000013F2  103C 0024                332      MOVE.B #'$',D0
+000013F6  1280                     333      MOVE.B D0,(A1)
+000013F8  5089                     334      ADD.L #$8,A1
+000013FA  103C 002B                335      MOVE.B #'+',D0
+000013FE  1280                     336      MOVE.B D0,(A1)
+00001400  5089                     337      ADD.L #$8,A1
+00001402  103C 0020                338      MOVE.B #' ',D0
+00001406  1280                     339      MOVE.B D0,(A1)
+00001408  4EF8 1304                340      JMP BUCLEA2
+0000140C                           341  FIJARCAJAA2F
+0000140C  103C 0025                342      MOVE.B #'%',D0
+00001410  1280                     343      MOVE.B D0,(A1)
+00001412  5089                     344      ADD.L #$8,A1
+00001414  103C 002B                345      MOVE.B #'+',D0
+00001418  1280                     346      MOVE.B D0,(A1)
+0000141A  5089                     347      ADD.L #$8,A1
+0000141C  103C 0020                348      MOVE.B #' ',D0
+00001420  1280                     349      MOVE.B D0,(A1)
+00001422  4EF8 1304                350      JMP BUCLEA2
+00001426                           351  SIPERSA2O
+00001426  93FC 00000009            352      SUB.L #$9,A1
+0000142C  1011                     353      MOVE.B (A1),D0
+0000142E  0C00 0020                354      CMPI.B #' ',D0
+00001432  6700 0030                355      BEQ MOVERARRIBAO
+00001436  0C00 0024                356      CMPI.B #'$',D0
+0000143A  6700 003C                357      BEQ COMPROBARCAJAA2O
+0000143E  0C00 002E                358      CMPI.B #'.',D0
+00001442  6700 000C                359      BEQ MOVEROBJARRIBA0
+00001446  D3FC 00000009            360      ADD.L #$9,A1
+0000144C  6600 FEB6                361      BNE BUCLEA2
+00001450                           362  MOVEROBJARRIBA0
+00001450  103C 002B                363      MOVE.B #'+',D0
+00001454  1280                     364      MOVE.B D0,(A1)
+00001456  5089                     365      ADD.L #$8,A1
+00001458  103C 0020                366      MOVE.B #' ',D0
+0000145C  1280                     367      MOVE.B D0,(A1)
+0000145E  5F89                     368      SUB.L #$7,A1
+00001460  4EF8 1304                369      JMP BUCLEA2
+00001464                           370  MOVERARRIBAO
+00001464  103C 0040                371      MOVE.B #'@',D0
+00001468  1280                     372      MOVE.B D0,(A1)
+0000146A  5089                     373      ADD.L #$8,A1
+0000146C  103C 002E                374      MOVE.B #'.',D0
+00001470  1280                     375      MOVE.B D0,(A1)
+00001472  5F89                     376      SUB.L #$7,A1
+00001474  4EF8 1304                377      JMP BUCLEA2
+00001478                           378  COMPROBARCAJAA2O
+00001478  5189                     379      SUB.L #$8,A1
+0000147A  1011                     380      MOVE.B (A1),D0
+0000147C  0C00 0020                381      CMPI.B #' ',D0
+00001480  6700 000E                382      BEQ MOVERCAJAA2O
+00001484  0C00 002E                383      CMPI.B #'.',D0
+00001488  6700 0020                384      BEQ FIJARCAJAA2O
+0000148C  4EF8 1304                385      JMP BUCLEA2
+00001490                           386  MOVERCAJAA2O
+00001490  103C 0024                387      MOVE.B #'$',D0
+00001494  1280                     388      MOVE.B D0,(A1)
+00001496  5089                     389      ADD.L #$8,A1
+00001498  103C 0040                390      MOVE.B #'@',D0
+0000149C  1280                     391      MOVE.B D0,(A1)
+0000149E  5089                     392      ADD.L #$8,A1
+000014A0  103C 002E                393      MOVE.B #'.',D0
+000014A4  1280                     394      MOVE.B D0,(A1)
+000014A6  4EF8 1304                395      JMP BUCLEA2
+000014AA                           396  FIJARCAJAA2O
+000014AA  103C 0025                397      MOVE.B #'%',D0
+000014AE  1280                     398      MOVE.B D0,(A1)
+000014B0  5089                     399      ADD.L #$8,A1
+000014B2  103C 0040                400      MOVE.B #'@',D0
+000014B6  1280                     401      MOVE.B D0,(A1)
+000014B8  5089                     402      ADD.L #$8,A1
+000014BA  103C 002E                403      MOVE.B #'.',D0
+000014BE  1280                     404      MOVE.B D0,(A1)
+000014C0  4EF8 1304                405      JMP BUCLEA2
+000014C4                           406  NUEVAFILAA2
+000014C4  0C11 0000                407      CMP.B #0,(A1)
+000014C8  6600 FE3A                408      BNE BUCLEA2
+000014CC  4E75                     409      RTS
+000014CE                           410      
+000014CE                           411  ************SUB ABAJO
+000014CE                           412  ABAJO                               *SUBRUTINA QUE PERMITE EL MOVIMIENTO DEL PERSONAJE HACIA ABAJO SEGÚN LA SITUACIÓN
+000014CE  227C 00004000            413      MOVE.L #MAPA1,A1
+000014D4                           414  BUCLEA1  
+000014D4  1019                     415      MOVE.B (A1)+,D0
+000014D6  B03C 0000                416      CMP.B #0,D0
+000014DA  6700 01C8                417      BEQ NUEVAFILAA1
+000014DE  B03C 0040                418      CMP.B #'@',D0
+000014E2  6700 0012                419      BEQ SIPERSA1
+000014E6  B03C 002B                420      CMP.B #'+',D0
+000014EA  6600 0006                421      BNE NOPERSA1
+000014EE  6700 010C                422      BEQ SIPERSA1O
+000014F2                           423  NOPERSA1
+000014F2  4EF8 14D4                424      JMP BUCLEA1
+000014F6                           425  SIPERSA1
+000014F6  5E89                     426      ADD.L #$7,A1
+000014F8  1011                     427      MOVE.B (A1),D0
+000014FA  0C00 0020                428      CMPI.B #' ',D0
+000014FE  6700 0034                429      BEQ MOVERABAJO
+00001502  0C00 0024                430      CMPI.B #'$',D0
+00001506  6700 0044                431      BEQ COMPROBARCAJAA1
+0000150A  0C00 0025                432      CMPI.B #'%',D0
+0000150E  6700 0094                433      BEQ COMPROBARCAJAA1F
+00001512  0C00 002E                434      CMPI.B #'.',D0
+00001516  6700 0004                435      BEQ MOVEROBJABAJO
+0000151A  66B8                     436      BNE BUCLEA1
+0000151C                           437  MOVEROBJABAJO
+0000151C  103C 002B                438      MOVE.B #'+',D0
+00001520  1280                     439      MOVE.B D0,(A1)
+00001522  5189                     440      SUB.L #$8,A1
+00001524  103C 0020                441      MOVE.B #' ',D0
+00001528  1280                     442      MOVE.B D0,(A1)
+0000152A  D3FC 00000009            443      ADD.L #$9,A1
+00001530  4EF8 14D4                444      JMP BUCLEA1
+00001534                           445  MOVERABAJO
+00001534  103C 0040                446      MOVE.B #'@',D0
+00001538  1280                     447      MOVE.B D0,(A1)
+0000153A  5189                     448      SUB.L #$8,A1
+0000153C  103C 0020                449      MOVE.B #' ',D0
+00001540  1280                     450      MOVE.B D0,(A1)
+00001542  D3FC 00000009            451      ADD.L #$9,A1
+00001548  4EF8 14D4                452      JMP BUCLEA1
+0000154C                           453  COMPROBARCAJAA1
+0000154C  5089                     454      ADD.L #$8,A1
+0000154E  1011                     455      MOVE.B (A1),D0
+00001550  0C00 0020                456      CMPI.B #' ',D0
+00001554  6700 000E                457      BEQ MOVERCAJAA1
+00001558  0C00 002E                458      CMPI.B #'.',D0
+0000155C  6700 0026                459      BEQ FIJARCAJAA1
+00001560  4EF8 14D4                460      JMP BUCLEA1
+00001564                           461  MOVERCAJAA1
+00001564  103C 0024                462      MOVE.B #'$',D0
+00001568  1280                     463      MOVE.B D0,(A1)
+0000156A  5189                     464      SUB.L #$8,A1
+0000156C  103C 0040                465      MOVE.B #'@',D0
+00001570  1280                     466      MOVE.B D0,(A1)
+00001572  5189                     467      SUB.L #$8,A1
+00001574  103C 0020                468      MOVE.B #' ',D0
+00001578  1280                     469      MOVE.B D0,(A1)
+0000157A  D3FC 00000009            470      ADD.L #$9,A1
+00001580  4EF8 14D4                471      JMP BUCLEA1
+00001584                           472  FIJARCAJAA1
+00001584  103C 0025                473      MOVE.B #'%',D0
+00001588  1280                     474      MOVE.B D0,(A1)
+0000158A  5189                     475      SUB.L #$8,A1
+0000158C  103C 0040                476      MOVE.B #'@',D0
+00001590  1280                     477      MOVE.B D0,(A1)
+00001592  5189                     478      SUB.L #$8,A1
+00001594  103C 0020                479      MOVE.B #' ',D0
+00001598  1280                     480      MOVE.B D0,(A1)
+0000159A  D3FC 0000000A            481      ADD.L #$A,A1
+000015A0  4EF8 14D4                482      JMP BUCLEA1
+000015A4                           483  COMPROBARCAJAA1F
+000015A4  5089                     484      ADD.L #$8,A1
+000015A6  1011                     485      MOVE.B (A1),D0
+000015A8  0C00 0020                486      CMPI.B #' ',D0
+000015AC  6700 000E                487      BEQ MOVERCAJAA1F
+000015B0  0C00 002E                488      CMPI.B #'.',D0
+000015B4  6700 0026                489      BEQ FIJARCAJAA1F
+000015B8  4EF8 14D4                490      JMP BUCLEA1
+000015BC                           491  MOVERCAJAA1F
+000015BC  103C 0024                492      MOVE.B #'$',D0
+000015C0  1280                     493      MOVE.B D0,(A1)
+000015C2  5189                     494      SUB.L #$8,A1
+000015C4  103C 002B                495      MOVE.B #'+',D0
+000015C8  1280                     496      MOVE.B D0,(A1)
+000015CA  5189                     497      SUB.L #$8,A1
+000015CC  103C 0020                498      MOVE.B #' ',D0
+000015D0  1280                     499      MOVE.B D0,(A1)
+000015D2  D3FC 00000009            500      ADD.L #$9,A1
+000015D8  4EF8 14D4                501      JMP BUCLEA1
+000015DC                           502  FIJARCAJAA1F
+000015DC  103C 0025                503      MOVE.B #'%',D0
+000015E0  1280                     504      MOVE.B D0,(A1)
+000015E2  5189                     505      SUB.L #$8,A1
+000015E4  103C 002B                506      MOVE.B #'+',D0
+000015E8  1280                     507      MOVE.B D0,(A1)
+000015EA  5189                     508      SUB.L #$8,A1
+000015EC  103C 0020                509      MOVE.B #' ',D0
+000015F0  1280                     510      MOVE.B D0,(A1)
+000015F2  D3FC 0000000A            511      ADD.L #$A,A1
+000015F8  4EF8 14D4                512      JMP BUCLEA1
+000015FC                           513  SIPERSA1O
+000015FC  5E89                     514      ADD.L #$7,A1
+000015FE  1011                     515      MOVE.B (A1),D0
+00001600  0C00 0020                516      CMPI.B #' ',D0
+00001604  6700 002E                517      BEQ MOVERABAJOO
+00001608  0C00 0024                518      CMPI.B #'$',D0
+0000160C  6700 003E                519      BEQ COMPROBARCAJAA1O
+00001610  0C00 002E                520      CMPI.B #'.',D0
+00001614  6700 0006                521      BEQ MOVEROBJABAJOO
+00001618  6600 FEBA                522      BNE BUCLEA1
+0000161C                           523  MOVEROBJABAJOO
+0000161C  103C 002B                524      MOVE.B #'+',D0
+00001620  1280                     525      MOVE.B D0,(A1)
+00001622  5189                     526      SUB.L #$8,A1
+00001624  103C 0020                527      MOVE.B #' ',D0
+00001628  1280                     528      MOVE.B D0,(A1)
+0000162A  D3FC 00000009            529      ADD.L #$9,A1
+00001630  4EF8 14D4                530      JMP BUCLEA1
+00001634                           531  MOVERABAJOO
+00001634  103C 0040                532      MOVE.B #'@',D0
+00001638  1280                     533      MOVE.B D0,(A1)
+0000163A  5189                     534      SUB.L #$8,A1
+0000163C  103C 002E                535      MOVE.B #'.',D0
+00001640  1280                     536      MOVE.B D0,(A1)
+00001642  D3FC 00000009            537      ADD.L #$9,A1
+00001648  4EF8 14D4                538      JMP BUCLEA1
+0000164C                           539  COMPROBARCAJAA1O
+0000164C  5089                     540      ADD.L #$8,A1
+0000164E  1011                     541      MOVE.B (A1),D0
+00001650  0C00 0020                542      CMPI.B #' ',D0
+00001654  6700 000E                543      BEQ MOVERCAJAA1O
+00001658  0C00 002E                544      CMPI.B #'.',D0
+0000165C  6700 0026                545      BEQ FIJARCAJAA1O
+00001660  4EF8 14D4                546      JMP BUCLEA1
+00001664                           547  MOVERCAJAA1O
+00001664  103C 0024                548      MOVE.B #'$',D0
+00001668  1280                     549      MOVE.B D0,(A1)
+0000166A  5189                     550      SUB.L #$8,A1
+0000166C  103C 0040                551      MOVE.B #'@',D0
+00001670  1280                     552      MOVE.B D0,(A1)
+00001672  5189                     553      SUB.L #$8,A1
+00001674  103C 002E                554      MOVE.B #'.',D0
+00001678  1280                     555      MOVE.B D0,(A1)
+0000167A  D3FC 00000009            556      ADD.L #$9,A1
+00001680  4EF8 14D4                557      JMP BUCLEA1
+00001684                           558  FIJARCAJAA1O
+00001684  103C 0025                559      MOVE.B #'%',D0
+00001688  1280                     560      MOVE.B D0,(A1)
+0000168A  5189                     561      SUB.L #$8,A1
+0000168C  103C 0040                562      MOVE.B #'@',D0
+00001690  1280                     563      MOVE.B D0,(A1)
+00001692  5189                     564      SUB.L #$8,A1
+00001694  103C 002E                565      MOVE.B #'.',D0
+00001698  1280                     566      MOVE.B D0,(A1)
+0000169A  D3FC 0000000A            567      ADD.L #$A,A1
+000016A0  4EF8 14D4                568      JMP BUCLEA1
+000016A4                           569  NUEVAFILAA1
+000016A4  0C11 0000                570      CMP.B #0,(A1)
+000016A8  6600 FE2A                571      BNE BUCLEA1
+000016AC  4E75                     572      RTS
+000016AE                           573      
+000016AE                           574  ************SUB DERECHA
+000016AE                           575  DERECHA                              *SUBRUTINA QUE PERMITE EL MOVIMIENTO DEL PERSONAJE HACIA LA DERECHA SEGÚN LA SITUACIÓN
+000016AE  227C 00004000            576      MOVE.L #MAPA1,A1
+000016B4                           577  BUCLED  
+000016B4  1019                     578      MOVE.B (A1)+,D0
+000016B6  B03C 0000                579      CMP.B #0,D0
+000016BA  6700 01C0                580      BEQ NUEVAFILAD
+000016BE  B03C 0040                581      CMP.B #'@',D0
+000016C2  6700 0012                582      BEQ SIPERSD
+000016C6  B03C 002B                583      CMP.B #'+',D0
+000016CA  6600 0006                584      BNE NOPERSD
+000016CE  6700 0106                585      BEQ SIPERSDO
+000016D2                           586  NOPERSD
+000016D2  4EF8 16B4                587      JMP BUCLED
+000016D6                           588  SIPERSD
+000016D6  1011                     589      MOVE.B (A1),D0
+000016D8  0C00 0020                590      CMPI.B #' ',D0
+000016DC  6700 0036                591      BEQ MOVERDERECHA
+000016E0  0C00 0024                592      CMPI.B #'$',D0
+000016E4  6700 0048                593      BEQ COMPROBARCAJAD
+000016E8  0C00 0025                594      CMPI.B #'%',D0
+000016EC  6700 0094                595      BEQ COMPROBARCAJADF
+000016F0  0C00 002E                596      CMPI.B #'.',D0
+000016F4  6700 0004                597      BEQ MOVEROBJDERECHA
+000016F8  66BA                     598      BNE BUCLED
+000016FA                           599  MOVEROBJDERECHA
+000016FA  103C 002B                600      MOVE.B #'+',D0
+000016FE  12C0                     601      MOVE.B D0,(A1)+
+00001700  1300                     602      MOVE.B D0,-(A1)
+00001702  103C 0020                603      MOVE.B #' ',D0
+00001706  1300                     604      MOVE.B D0,-(A1)
+00001708  12C0                     605      MOVE.B D0,(A1)+
+0000170A  103C 002B                606      MOVE.B #'+',D0
+0000170E  12C0                     607      MOVE.B D0,(A1)+
+00001710  4EF8 16B4                608      JMP BUCLED
+00001714                           609  MOVERDERECHA
+00001714  103C 0040                610      MOVE.B #'@',D0
+00001718  12C0                     611      MOVE.B D0,(A1)+
+0000171A  1300                     612      MOVE.B D0,-(A1)
+0000171C  103C 0020                613      MOVE.B #' ',D0
+00001720  1300                     614      MOVE.B D0,-(A1)
+00001722  12C0                     615      MOVE.B D0,(A1)+
+00001724  103C 0040                616      MOVE.B #'@',D0
+00001728  12C0                     617      MOVE.B D0,(A1)+
+0000172A  4EF8 16B4                618      JMP BUCLED
+0000172E                           619  COMPROBARCAJAD
+0000172E  5289                     620      ADD.L #$1,A1
+00001730  1019                     621      MOVE.B (A1)+,D0
+00001732  0C00 0020                622      CMPI.B #' ',D0
+00001736  6700 000E                623      BEQ MOVERCAJAD
+0000173A  0C00 002E                624      CMPI.B #'.',D0
+0000173E  6700 0024                625      BEQ FIJARCAJAD
+00001742  4EF8 16B4                626      JMP BUCLED
+00001746                           627  MOVERCAJAD
+00001746  5389                     628      SUB.L #$1,A1
+00001748  103C 0024                629      MOVE.B #'$',D0
+0000174C  1280                     630      MOVE.B D0,(A1)
+0000174E  5389                     631      SUB.L #$1,A1
+00001750  103C 0040                632      MOVE.B #'@',D0
+00001754  1280                     633      MOVE.B D0,(A1)
+00001756  5389                     634      SUB.L #$1,A1
+00001758  103C 0020                635      MOVE.B #' ',D0
+0000175C  1280                     636      MOVE.B D0,(A1)
+0000175E  5489                     637      ADD.L #$2,A1
+00001760  4EF8 16B4                638      JMP BUCLED
+00001764                           639  FIJARCAJAD
+00001764  5389                     640      SUB.L #$1,A1
+00001766  103C 0025                641      MOVE.B #'%',D0
+0000176A  1280                     642      MOVE.B D0,(A1)
+0000176C  5389                     643      SUB.L #$1,A1
+0000176E  103C 0040                644      MOVE.B #'@',D0
+00001772  1280                     645      MOVE.B D0,(A1)
+00001774  5389                     646      SUB.L #$1,A1
+00001776  103C 0020                647      MOVE.B #' ',D0
+0000177A  1280                     648      MOVE.B D0,(A1)
+0000177C  5489                     649      ADD.L #$2,A1
+0000177E  4EF8 16B4                650      JMP BUCLED
+00001782                           651  COMPROBARCAJADF
+00001782  5289                     652      ADD.L #$1,A1
+00001784  1019                     653      MOVE.B (A1)+,D0
+00001786  0C00 0020                654      CMPI.B #' ',D0
+0000178A  6700 000E                655      BEQ MOVERCAJADF
+0000178E  0C00 002E                656      CMPI.B #'.',D0
+00001792  6700 0024                657      BEQ FIJARCAJADF
+00001796  4EF8 16B4                658      JMP BUCLED
+0000179A                           659  MOVERCAJADF
+0000179A  5389                     660      SUB.L #$1,A1
+0000179C  103C 0024                661      MOVE.B #'$',D0
+000017A0  1280                     662      MOVE.B D0,(A1)
+000017A2  5389                     663      SUB.L #$1,A1
+000017A4  103C 002B                664      MOVE.B #'+',D0
+000017A8  1280                     665      MOVE.B D0,(A1)
+000017AA  5389                     666      SUB.L #$1,A1
+000017AC  103C 0020                667      MOVE.B #' ',D0
+000017B0  1280                     668      MOVE.B D0,(A1)
+000017B2  5489                     669      ADD.L #$2,A1
+000017B4  4EF8 16B4                670      JMP BUCLED
+000017B8                           671  FIJARCAJADF
+000017B8  5389                     672      SUB.L #$1,A1
+000017BA  103C 0025                673      MOVE.B #'%',D0
+000017BE  1280                     674      MOVE.B D0,(A1)
+000017C0  5389                     675      SUB.L #$1,A1
+000017C2  103C 002B                676      MOVE.B #'+',D0
+000017C6  1280                     677      MOVE.B D0,(A1)
+000017C8  5389                     678      SUB.L #$1,A1
+000017CA  103C 0020                679      MOVE.B #' ',D0
+000017CE  1280                     680      MOVE.B D0,(A1)
+000017D0  5489                     681      ADD.L #$2,A1
+000017D2  4EF8 16B4                682      JMP BUCLED
+000017D6                           683  SIPERSDO
+000017D6  1011                     684      MOVE.B (A1),D0
+000017D8  0C00 0020                685      CMPI.B #' ',D0
+000017DC  6700 0030                686      BEQ MOVERDERECHAO
+000017E0  0C00 0024                687      CMPI.B #'$',D0
+000017E4  6700 0042                688      BEQ COMPROBARCAJADO
+000017E8  0C00 002E                689      CMPI.B #'.',D0
+000017EC  6700 0006                690      BEQ MOVEROBJDERECHAO
+000017F0  6600 FEC2                691      BNE BUCLED
+000017F4                           692  MOVEROBJDERECHAO
+000017F4  103C 002B                693      MOVE.B #'+',D0
+000017F8  12C0                     694      MOVE.B D0,(A1)+
+000017FA  1300                     695      MOVE.B D0,-(A1)
+000017FC  103C 002E                696      MOVE.B #'.',D0
+00001800  1300                     697      MOVE.B D0,-(A1)
+00001802  12C0                     698      MOVE.B D0,(A1)+
+00001804  103C 002B                699      MOVE.B #'+',D0
+00001808  12C0                     700      MOVE.B D0,(A1)+
+0000180A  4EF8 16B4                701      JMP BUCLED
+0000180E                           702  MOVERDERECHAO
+0000180E  103C 0040                703      MOVE.B #'@',D0
+00001812  12C0                     704      MOVE.B D0,(A1)+
+00001814  1300                     705      MOVE.B D0,-(A1)
+00001816  103C 002E                706      MOVE.B #'.',D0
+0000181A  1300                     707      MOVE.B D0,-(A1)
+0000181C  12C0                     708      MOVE.B D0,(A1)+
+0000181E  103C 0040                709      MOVE.B #'@',D0
+00001822  12C0                     710      MOVE.B D0,(A1)+
+00001824  4EF8 16B4                711      JMP BUCLED
+00001828                           712  COMPROBARCAJADO
+00001828  5289                     713      ADD.L #$1,A1
+0000182A  1019                     714      MOVE.B (A1)+,D0
+0000182C  0C00 0020                715      CMPI.B #' ',D0
+00001830  6700 000E                716      BEQ MOVERCAJADO
+00001834  0C00 002E                717      CMPI.B #'.',D0
+00001838  6700 0024                718      BEQ FIJARCAJADO
+0000183C  4EF8 16B4                719      JMP BUCLED
+00001840                           720  MOVERCAJADO
+00001840  5389                     721      SUB.L #$1,A1
+00001842  103C 0024                722      MOVE.B #'$',D0
+00001846  1280                     723      MOVE.B D0,(A1)
+00001848  5389                     724      SUB.L #$1,A1
+0000184A  103C 0040                725      MOVE.B #'@',D0
+0000184E  1280                     726      MOVE.B D0,(A1)
+00001850  5389                     727      SUB.L #$1,A1
+00001852  103C 002E                728      MOVE.B #'.',D0
+00001856  1280                     729      MOVE.B D0,(A1)
+00001858  5489                     730      ADD.L #$2,A1
+0000185A  4EF8 16B4                731      JMP BUCLED
+0000185E                           732  FIJARCAJADO
+0000185E  5389                     733      SUB.L #$1,A1
+00001860  103C 0025                734      MOVE.B #'%',D0
+00001864  1280                     735      MOVE.B D0,(A1)
+00001866  5389                     736      SUB.L #$1,A1
+00001868  103C 0040                737      MOVE.B #'@',D0
+0000186C  1280                     738      MOVE.B D0,(A1)
+0000186E  5389                     739      SUB.L #$1,A1
+00001870  103C 002E                740      MOVE.B #'.',D0
+00001874  1280                     741      MOVE.B D0,(A1)
+00001876  5489                     742      ADD.L #$2,A1
+00001878  4EF8 16B4                743      JMP BUCLED
+0000187C                           744  NUEVAFILAD
+0000187C  0C11 0000                745      CMP.B #0,(A1)
+00001880  6600 FE32                746      BNE BUCLED
+00001884  4E75                     747      RTS
+00001886                           748  
+00001886                           749  ************SUB IZQUIERDA
+00001886                           750  IZQUIERDA                           *SUBRUTINA QUE PERMITE EL MOVIMIENTO DEL PERSONAJE HACIA LA IZQUIERDA SEGÚN LA SITUACIÓN
+00001886  227C 00004000            751      MOVE.L #MAPA1,A1
+0000188C                           752  BUCLEI  
+0000188C  1019                     753      MOVE.B (A1)+,D0
+0000188E  B03C 0000                754      CMP.B #0,D0
+00001892  6700 0198                755      BEQ NUEVAFILAI
+00001896  B03C 0040                756      CMP.B #'@',D0
+0000189A  6700 0012                757      BEQ SIPERSI
+0000189E  B03C 002B                758      CMP.B #'+',D0
+000018A2  6600 0006                759      BNE NOPERSI
+000018A6  6700 00F0                760      BEQ SIPERSIO
+000018AA                           761  NOPERSI
+000018AA  4EF8 188C                762      JMP BUCLEI
+000018AE                           763  SIPERSI                         
+000018AE  1021                     764      MOVE.B -(A1),D0
+000018B0  1021                     765      MOVE.B -(A1),D0
+000018B2  0C00 0020                766      CMPI.B #' ',D0
+000018B6  6700 0020                767      BEQ MOVERIZQUIERDA
+000018BA  0C00 0024                768      CMPI.B #'$',D0
+000018BE  6700 003C                769      BEQ COMPROBARCAJAI
+000018C2  0C00 0025                770      CMPI.B #'%',D0
+000018C6  6700 0082                771      BEQ COMPROBARCAJAIF
+000018CA  0C00 002E                772      CMPI.B #'.',D0
+000018CE  6700 001A                773      BEQ MOVEROBJIZQUIERDA
+000018D2  1019                     774      MOVE.B (A1)+,D0
+000018D4  1019                     775      MOVE.B (A1)+,D0
+000018D6  66B4                     776      BNE BUCLEI
+000018D8                           777  MOVERIZQUIERDA
+000018D8  103C 0040                778      MOVE.B #'@',D0
+000018DC  1280                     779      MOVE.B D0,(A1)
+000018DE  12C0                     780      MOVE.B D0,(A1)+
+000018E0  103C 0020                781      MOVE.B #' ',D0
+000018E4  12C0                     782      MOVE.B D0,(A1)+
+000018E6  4EF8 188C                783      JMP BUCLEI
+000018EA                           784  MOVEROBJIZQUIERDA
+000018EA  103C 002B                785      MOVE.B #'+',D0
+000018EE  1280                     786      MOVE.B D0,(A1)
+000018F0  12C0                     787      MOVE.B D0,(A1)+
+000018F2  103C 0020                788      MOVE.B #' ',D0
+000018F6  12C0                     789      MOVE.B D0,(A1)+
+000018F8  4EF8 188C                790      JMP BUCLEI
+000018FC                           791  COMPROBARCAJAI
+000018FC  5389                     792      SUB.L #$1,A1
+000018FE  1011                     793      MOVE.B (A1),D0
+00001900  0C00 0020                794      CMPI.B #' ',D0
+00001904  6700 0010                795      BEQ MOVERCAJAI
+00001908  0C00 002E                796      CMPI.B #'.',D0
+0000190C  6700 0022                797      BEQ FIJARCAJAI
+00001910  5689                     798      ADD.L #$3,A1
+00001912  4EF8 188C                799      JMP BUCLEI
+00001916                           800  MOVERCAJAI
+00001916  103C 0024                801      MOVE.B #'$',D0
+0000191A  1280                     802      MOVE.B D0,(A1)
+0000191C  5289                     803      ADD.L #$1,A1
+0000191E  103C 0040                804      MOVE.B #'@',D0
+00001922  1280                     805      MOVE.B D0,(A1)
+00001924  5289                     806      ADD.L #$1,A1
+00001926  103C 0020                807      MOVE.B #' ',D0
+0000192A  1280                     808      MOVE.B D0,(A1)
+0000192C  4EF8 188C                809      JMP BUCLEI
+00001930                           810  FIJARCAJAI
+00001930  103C 0025                811      MOVE.B #'%',D0
+00001934  1280                     812      MOVE.B D0,(A1)
+00001936  5289                     813      ADD.L #$1,A1
+00001938  103C 0040                814      MOVE.B #'@',D0
+0000193C  1280                     815      MOVE.B D0,(A1)
+0000193E  5289                     816      ADD.L #$1,A1
+00001940  103C 0020                817      MOVE.B #' ',D0
+00001944  1280                     818      MOVE.B D0,(A1)
+00001946  4EF8 188C                819      JMP BUCLEI
+0000194A                           820  COMPROBARCAJAIF
+0000194A  5389                     821      SUB.L #$1,A1
+0000194C  1011                     822      MOVE.B (A1),D0
+0000194E  0C00 0020                823      CMPI.B #' ',D0
+00001952  6700 0010                824      BEQ MOVERCAJAIF
+00001956  0C00 002E                825      CMPI.B #'.',D0
+0000195A  6700 0022                826      BEQ FIJARCAJAIF
+0000195E  5689                     827      ADD.L #$3,A1
+00001960  4EF8 188C                828      JMP BUCLEI
+00001964                           829  MOVERCAJAIF
+00001964  103C 0024                830      MOVE.B #'$',D0
+00001968  1280                     831      MOVE.B D0,(A1)
+0000196A  5289                     832      ADD.L #$1,A1
+0000196C  103C 0040                833      MOVE.B #'@',D0
+00001970  1280                     834      MOVE.B D0,(A1)
+00001972  5289                     835      ADD.L #$1,A1
+00001974  103C 0020                836      MOVE.B #' ',D0
+00001978  1280                     837      MOVE.B D0,(A1)
+0000197A  4EF8 188C                838      JMP BUCLEI
+0000197E                           839  FIJARCAJAIF
+0000197E  103C 0025                840      MOVE.B #'%',D0
+00001982  1280                     841      MOVE.B D0,(A1)
+00001984  5289                     842      ADD.L #$1,A1
+00001986  103C 0040                843      MOVE.B #'@',D0
+0000198A  1280                     844      MOVE.B D0,(A1)
+0000198C  5289                     845      ADD.L #$1,A1
+0000198E  103C 0020                846      MOVE.B #' ',D0
+00001992  1280                     847      MOVE.B D0,(A1)
+00001994  4EF8 188C                848      JMP BUCLEI
+00001998                           849  SIPERSIO
+00001998  1021                     850      MOVE.B -(A1),D0
+0000199A  1021                     851      MOVE.B -(A1),D0
+0000199C  0C00 0020                852      CMPI.B #' ',D0
+000019A0  6700 002C                853      BEQ MOVERIZQUIERDAO
+000019A4  0C00 0024                854      CMPI.B #'$',D0
+000019A8  6700 0036                855      BEQ COMPROBARCAJAIO
+000019AC  0C00 0020                856      CMPI.B #' ',D0
+000019B0  6700 000A                857      BEQ MOVEROBJIZQUIERDAO
+000019B4  1019                     858      MOVE.B (A1)+,D0
+000019B6  1019                     859      MOVE.B (A1)+,D0
+000019B8  6600 FED2                860      BNE BUCLEI
+000019BC                           861  MOVEROBJIZQUIERDAO
+000019BC  103C 002B                862      MOVE.B #'+',D0
+000019C0  1280                     863      MOVE.B D0,(A1)
+000019C2  12C0                     864      MOVE.B D0,(A1)+
+000019C4  103C 002E                865      MOVE.B #'.',D0
+000019C8  12C0                     866      MOVE.B D0,(A1)+
+000019CA  4EF8 188C                867      JMP BUCLEI
+000019CE                           868  MOVERIZQUIERDAO
+000019CE  103C 0040                869      MOVE.B #'@',D0
+000019D2  1280                     870      MOVE.B D0,(A1)
+000019D4  12C0                     871      MOVE.B D0,(A1)+
+000019D6  103C 002E                872      MOVE.B #'.',D0
+000019DA  12C0                     873      MOVE.B D0,(A1)+
+000019DC  4EF8 188C                874      JMP BUCLEI
+000019E0                           875  COMPROBARCAJAIO
+000019E0  5389                     876      SUB.L #$1,A1
+000019E2  1011                     877      MOVE.B (A1),D0
+000019E4  0C00 0020                878      CMPI.B #' ',D0
+000019E8  6700 000E                879      BEQ MOVERCAJAIO
+000019EC  0C00 002E                880      CMPI.B #'.',D0
+000019F0  6700 0020                881      BEQ FIJARCAJAIO
+000019F4  4EF8 188C                882      JMP BUCLEI
+000019F8                           883  MOVERCAJAIO
+000019F8  103C 0024                884      MOVE.B #'$',D0
+000019FC  1280                     885      MOVE.B D0,(A1)
+000019FE  5289                     886      ADD.L #$1,A1
+00001A00  103C 0040                887      MOVE.B #'@',D0
+00001A04  1280                     888      MOVE.B D0,(A1)
+00001A06  5289                     889      ADD.L #$1,A1
+00001A08  103C 002E                890      MOVE.B #'.',D0
+00001A0C  1280                     891      MOVE.B D0,(A1)
+00001A0E  4EF8 188C                892      JMP BUCLEI
+00001A12                           893  FIJARCAJAIO
+00001A12  103C 0025                894      MOVE.B #'%',D0
+00001A16  1280                     895      MOVE.B D0,(A1)
+00001A18  5289                     896      ADD.L #$1,A1
+00001A1A  103C 0040                897      MOVE.B #'@',D0
+00001A1E  1280                     898      MOVE.B D0,(A1)
+00001A20  5289                     899      ADD.L #$1,A1
+00001A22  103C 002E                900      MOVE.B #'.',D0
+00001A26  1280                     901      MOVE.B D0,(A1)
+00001A28  4EF8 188C                902      JMP BUCLEI
+00001A2C                           903  
+00001A2C                           904  NUEVAFILAI
+00001A2C  0C11 0000                905      CMP.B #0,(A1)
+00001A30  6600 FE5A                906      BNE BUCLEI
+00001A34  4E75                     907      RTS
+00001A36                           908  
+00001A36                           909  
+00001A36                           910  ************SUB BORRAMAPA
+00001A36                           911  BORRAMAPA                           *SUBRUTINA QUE BORRA LA PANTALLA
+00001A36  103C 000B                912      MOVE.B #11,D0
+00001A3A  323C FF00                913      MOVE.W #$FF00,D1
+00001A3E  4E4F                     914      TRAP #15
+00001A40  4240                     915      CLR D0
+00001A42  4241                     916      CLR D1
+00001A44  4E75                     917      RTS
+00001A46                           918   
+00001A46                           919  ************SUB PINTAMAPA
+00001A46                           920  PINTAMAPA                           *SUBRUTINA QUE PINTA EL MAPA POSICIÓN POR POSICIÓN
+00001A46  48E7 E040                921      MOVEM.L A1/D0-D2,-(A7)
+00001A4A  227C 00004000            922      MOVE.L #MAPA1,A1
+00001A50  7264                     923      MOVE.L #ORIX,D1
+00001A52  7464                     924      MOVE.L #ORIY,D2     
+00001A54  4EB9 00001CE6            925      JSR BLANCO
+00001A5A                           926  BUCLE  
+00001A5A  1019                     927      MOVE.B (A1)+,D0
+00001A5C  B03C 0000                928      CMP.B #0,D0
+00001A60  6700 0084                929      BEQ NUEVAFILA
+00001A64  B03C 0023                930      CMP.B #'#',D0
+00001A68  6600 000E                931      BNE NOMURO
+00001A6C  4EB9 00001C6A            932      JSR GRIS
+00001A72  4EB9 00001AFC            933      JSR PINTAMURO
+00001A78                           934  NOMURO  
+00001A78  B03C 0040                935      CMP.B #'@',D0
+00001A7C  6600 000E                936      BNE NOPERS
+00001A80  4EB9 00001C84            937      JSR AMARILLO
+00001A86  4EB9 00001B52            938      JSR PINTAMOZO
+00001A8C                           939  NOPERS
+00001A8C  B03C 002E                940      CMP.B #'.',D0
+00001A90  6600 000E                941      BNE NOOBJ
+00001A94  4EB9 00001C9E            942      JSR VERDE
+00001A9A  4EB9 00001C20            943      JSR PINTAOBJ
+00001AA0                           944  NOOBJ
+00001AA0  B03C 0024                945      CMP.B #'$',D0
+00001AA4  6600 000E                946      BNE NOCAJA
+00001AA8  4EB9 00001CB8            947      JSR MARRONCLARO
+00001AAE  4EB9 00001BBC            948      JSR PINTACAJA
+00001AB4                           949  NOCAJA
+00001AB4  B03C 0025                950      CMP.B #'%',D0
+00001AB8  6600 000E                951      BNE NOCAJAFIJA
+00001ABC  4EB9 00001D00            952      JSR MARRONOSCURO
+00001AC2  4EB9 00001BBC            953      JSR PINTACAJA
+00001AC8                           954  NOCAJAFIJA
+00001AC8  B03C 002B                955      CMP.B #'+',D0
+00001ACC  6600 000E                956      BNE NOPERSOBJ
+00001AD0  4EB9 00001D1A            957      JSR AMARILLOVERDOSO
+00001AD6  4EB9 00001B52            958      JSR PINTAMOZO
+00001ADC                           959  NOPERSOBJ
+00001ADC  0681 00000064            960      ADD.L #SIZE,D1  
+00001AE2  4EF8 1A5A                961      JMP BUCLE
+00001AE6                           962         
+00001AE6                           963  NUEVAFILA 
+00001AE6  0682 00000064            964      ADD.L #SIZE,D2          
+00001AEC  7264                     965      MOVE.L #ORIX,D1         
+00001AEE  0C11 0000                966      CMP.B #0,(A1)
+00001AF2  6600 FF66                967      BNE BUCLE
+00001AF6  4CDF 0207                968      MOVEM.L (A7)+,A1/D0-D2
+00001AFA  4E75                     969      RTS
+00001AFC                           970   
+00001AFC                           971  *************SUB PINTAMURO
+00001AFC                           972  PINTAMURO                   *PINTA UN MURO CON LOS TASK DE RECTÁNGULO Y LOS DE LINEA (TASK 87 Y 84)
+00001AFC  48E7 F800                973      MOVEM.L D0-D4,-(A7)
+00001B00  2601                     974      MOVE.L D1,D3
+00001B02  2802                     975      MOVE.L D2,D4
+00001B04  0683 00000064            976      ADD.L #SIZE,D3
+00001B0A  0684 00000064            977      ADD.L #SIZE,D4
+00001B10  7057                     978      MOVE.L #87,D0           *CUADRADO
+00001B12  4E4F                     979      TRAP #15
+00001B14  0681 00000021            980      ADD.L #SIZE/3,D1
+00001B1A  2601                     981      MOVE.L D1,D3
+00001B1C  7054                     982      MOVE.L #84,D0           *LÍNEAS
+00001B1E  4E4F                     983      TRAP #15
+00001B20  0681 00000021            984      ADD.L #SIZE/3,D1
+00001B26  2601                     985      MOVE.L D1,D3
+00001B28  4E4F                     986      TRAP #15
+00001B2A  0681 00000021            987      ADD.L #SIZE/3,D1
+00001B30  2601                     988      MOVE.L D1,D3
+00001B32  0481 00000064            989      SUB.L #SIZE,D1
+00001B38  0682 00000021            990      ADD.L #SIZE/3,D2
+00001B3E  2802                     991      MOVE.L D2,D4
+00001B40  4E4F                     992      TRAP #15
+00001B42  0682 00000021            993      ADD.L #SIZE/3,D2
+00001B48  2802                     994      MOVE.L D2,D4
+00001B4A  4E4F                     995      TRAP #15
+00001B4C  4CDF 001F                996      MOVEM.L (A7)+,D0-D4
+00001B50  4E75                     997      RTS
+00001B52                           998     
+00001B52                           999  ***********SUB PINTAMOZO
+00001B52                          1000  PINTAMOZO                   *PINTA UN PERSONAJE CON LOS TASK DE ELIPSES Y DE LINEAS (TASK 88 Y 84)
+00001B52  48E7 F800               1001      MOVEM.L D0-D4,-(A7)
+00001B56  0681 00000019           1002      ADD.L #SIZE/4,D1         
+00001B5C  0682 00000019           1003      ADD.L #SIZE/4,D2         
+00001B62  2601                    1004      MOVE.L D1,D3
+00001B64  2802                    1005      MOVE.L D2,D4
+00001B66  0683 00000032           1006      ADD.L #SIZE/2,D3
+00001B6C  0684 00000032           1007      ADD.L #SIZE/2,D4
+00001B72  7058                    1008      MOVE.L #88,D0            *CÍRCULO
+00001B74  4E4F                    1009      TRAP #15
+00001B76  705B                    1010      MOVE.L #91,D0
+00001B78  0681 00000010           1011      ADD.L #SIZE/6,D1         *CÍRCULOS
+00001B7E  0682 00000010           1012      ADD.L #SIZE/6,D2
+00001B84  2601                    1013      MOVE.L D1,D3
+00001B86  2802                    1014      MOVE.L D2,D4
+00001B88  5483                    1015      ADD.L #2,D3
+00001B8A  5484                    1016      ADD.L #2,D4
+00001B8C  4E4F                    1017      TRAP #15
+00001B8E  0681 00000010           1018      ADD.L #SIZE/6,D1
+00001B94  0683 00000010           1019      ADD.L #SIZE/6,D3
+00001B9A  4E4F                    1020      TRAP #15
+00001B9C  0481 00000010           1021      SUB.L #SIZE/6,D1         *LÍNEA
+00001BA2  2601                    1022      MOVE.L D1,D3
+00001BA4  0683 00000014           1023      ADD.L #SIZE/5,D3
+00001BAA  0682 00000010           1024      ADD.L #SIZE/6,D2
+00001BB0  2802                    1025      MOVE.L D2,D4
+00001BB2  7054                    1026      MOVE.L #84,D0
+00001BB4  4E4F                    1027      TRAP #15
+00001BB6  4CDF 001F               1028      MOVEM.L (A7)+,D0-D4
+00001BBA  4E75                    1029      RTS
+00001BBC                          1030     
+00001BBC                          1031  ***********SUB PINTACAJA
+00001BBC                          1032  PINTACAJA                   *PINTA UN CAJA CON LOS TASK DE RECTÁNGULO, RECTÁNGULO SIN RELLENO Y LOS DE LINEA (TASK 87, 90 Y 84)               
+00001BBC  48E7 F800               1033      MOVEM.L D0-D4,-(A7)
+00001BC0  2601                    1034      MOVE.L D1,D3
+00001BC2  2802                    1035      MOVE.L D2,D4
+00001BC4  0683 00000064           1036      ADD.L #SIZE,D3
+00001BCA  0684 00000064           1037      ADD.L #SIZE,D4
+00001BD0  7057                    1038      MOVE.L #87,D0            *RECTÁNGULO
+00001BD2  4E4F                    1039      TRAP #15
+00001BD4  0681 0000000C           1040      ADD.L #SIZE/8,D1
+00001BDA  0682 0000000C           1041      ADD.L #SIZE/8,D2
+00001BE0  0483 0000000C           1042      SUB.L #SIZE/8,D3
+00001BE6  0484 0000000C           1043      SUB.L #SIZE/8,D4
+00001BEC  705A                    1044      MOVE.L #90,D0            *RECTÁNGULO SIN RELLENO
+00001BEE  4E4F                    1045      TRAP #15
+00001BF0  0681 0000000C           1046      ADD.L #SIZE/8,D1
+00001BF6  0484 0000000C           1047      SUB.L #SIZE/8,D4
+00001BFC  7054                    1048      MOVE.L #84,D0            *LÍNEAS
+00001BFE  4E4F                    1049      TRAP #15
+00001C00  0481 0000000C           1050      SUB.L #SIZE/8,D1
+00001C06  0684 0000000C           1051      ADD.L #SIZE/8,D4
+00001C0C  0682 0000000C           1052      ADD.L #SIZE/8,D2
+00001C12  0483 0000000C           1053      SUB.L #SIZE/8,D3
+00001C18  4E4F                    1054      TRAP #15
+00001C1A  4CDF 001F               1055      MOVEM.L (A7)+,D0-D4
+00001C1E  4E75                    1056      RTS
+00001C20                          1057      
+00001C20                          1058  ***********SUB PINTAOBJ    
+00001C20                          1059  PINTAOBJ                    *PINTA UN OBJETIVO CON LOS TASK DE ELIPSE Y LOS DE LINEA (TASK 88 Y 84)
+00001C20  48E7 F800               1060      MOVEM.L D0-D4,-(A7)
+00001C24  0681 00000021           1061      ADD.L #SIZE/3,D1         
+00001C2A  0682 00000021           1062      ADD.L #SIZE/3,D2         
+00001C30  2601                    1063      MOVE.L D1,D3
+00001C32  2802                    1064      MOVE.L D2,D4
+00001C34  0683 00000021           1065      ADD.L #SIZE/3,D3
+00001C3A  0684 00000021           1066      ADD.L #SIZE/3,D4
+00001C40  7058                    1067      MOVE.L #88,D0            *CÍRCULO
+00001C42  4E4F                    1068      TRAP #15
+00001C44  4CDF 001F               1069      MOVEM.L (A7)+,D0-D4
+00001C48  4E75                    1070      RTS
+00001C4A                          1071  
+00001C4A                          1072  ***********SUB SHOWTIME    
+00001C4A                          1073  SHOWTIME                    *SACA POR PANTALLA UNA LÍNEA CON EL TEXTO DE EL TIEMPO Y OTRA CON EL NÚMERO DE SEGUNDOS
+00001C4A  4EB9 00001CE6           1074      JSR BLANCO
+00001C50  43F9 00004032           1075      LEA TIME,A1
+00001C56  103C 000B               1076      MOVE.B #11,D0
+00001C5A  323C 01F9               1077      MOVE.W #0505,D1
+00001C5E  4E4F                    1078      TRAP #15
+00001C60  103C 0011               1079      MOVE.B #17,D0
+00001C64  2207                    1080      MOVE.L D7,D1
+00001C66  4E4F                    1081      TRAP #15
+00001C68  4E75                    1082      RTS
+00001C6A                          1083  
+00001C6A                          1084  **********SUBS COLORES    
+00001C6A                          1085  GRIS                        *SUBRUTINAS QUE CONFIGURAN EL COLOR DE RELLENO Y DE LAPIZ A LA HORA DE DIBUJAR COSAS POR PANTALLA
+00001C6A  48E7 C000               1086      MOVEM.L D0-D1,-(A7)
+00001C6E  7051                    1087      MOVE.L #81,D0
+00001C70  223C 00404040           1088      MOVE.L #DRKGRAY,D1
+00001C76  4E4F                    1089      TRAP #15
+00001C78  7050                    1090      MOVE.L #80,D0
+00001C7A  7200                    1091      MOVE.L #BLACK,D1
+00001C7C  4E4F                    1092      TRAP #15
+00001C7E  4CDF 0003               1093      MOVEM.L (A7)+,D0-D1
+00001C82  4E75                    1094      RTS
+00001C84                          1095     
+00001C84                          1096  AMARILLO
+00001C84  48E7 C000               1097      MOVEM.L D0-D1,-(A7)
+00001C88  7051                    1098      MOVE.L #81,D0
+00001C8A  223C 0000FFFF           1099      MOVE.L #YELLOW,D1
+00001C90  4E4F                    1100      TRAP #15
+00001C92  7050                    1101      MOVE.L #80,D0
+00001C94  7200                    1102      MOVE.L #BLACK,D1
+00001C96  4E4F                    1103      TRAP #15
+00001C98  4CDF 0003               1104      MOVEM.L (A7)+,D0-D1
+00001C9C  4E75                    1105      RTS
+00001C9E                          1106      
+00001C9E                          1107  VERDE
+00001C9E  48E7 C000               1108      MOVEM.L D0-D1,-(A7)
+00001CA2  7051                    1109      MOVE.L #81,D0
+00001CA4  223C 0000FF00           1110      MOVE.L #GREEN,D1
+00001CAA  4E4F                    1111      TRAP #15
+00001CAC  7050                    1112      MOVE.L #80,D0
+00001CAE  7200                    1113      MOVE.L #BLACK,D1
+00001CB0  4E4F                    1114      TRAP #15
+00001CB2  4CDF 0003               1115      MOVEM.L (A7)+,D0-D1
+00001CB6  4E75                    1116      RTS
+00001CB8                          1117      
+00001CB8                          1118  MARRONCLARO
+00001CB8  48E7 C000               1119      MOVEM.L D0-D1,-(A7)
+00001CBC  7051                    1120      MOVE.L #81,D0
+00001CBE  223C 00004ABA           1121      MOVE.L #LIGHTBROWN,D1
+00001CC4  4E4F                    1122      TRAP #15
+00001CC6  7050                    1123      MOVE.L #80,D0
+00001CC8  7200                    1124      MOVE.L #BLACK,D1
+00001CCA  4E4F                    1125      TRAP #15
+00001CCC  4CDF 0003               1126      MOVEM.L (A7)+,D0-D1
+00001CD0  4E75                    1127      RTS
+00001CD2                          1128      
+00001CD2                          1129  NEGRO
+00001CD2  48E7 C000               1130      MOVEM.L D0-D1,-(A7)
+00001CD6  7051                    1131      MOVE.L #81,D0
+00001CD8  7200                    1132      MOVE.L #BLACK,D1
+00001CDA  4E4F                    1133      TRAP #15
+00001CDC  7050                    1134      MOVE.L #80,D0
+00001CDE  4E4F                    1135      TRAP #15
+00001CE0  4CDF 0003               1136      MOVEM.L (A7)+,D0-D1
+00001CE4  4E75                    1137      RTS
+00001CE6                          1138      
+00001CE6                          1139  BLANCO
+00001CE6  48E7 C000               1140      MOVEM.L D0-D1,-(A7)
+00001CEA  7051                    1141      MOVE.L #81,D0
+00001CEC  7200                    1142      MOVE.L #BLACK,D1
+00001CEE  4E4F                    1143      TRAP #15
+00001CF0  7050                    1144      MOVE.L #80,D0
+00001CF2  223C 00FFFFFF           1145      MOVE.L #WHITE,D1
+00001CF8  4E4F                    1146      TRAP #15
+00001CFA  4CDF 0003               1147      MOVEM.L (A7)+,D0-D1
+00001CFE  4E75                    1148      RTS
+00001D00                          1149      
+00001D00                          1150  MARRONOSCURO
+00001D00  48E7 C000               1151      MOVEM.L D0-D1,-(A7)
+00001D04  7051                    1152      MOVE.L #81,D0
+00001D06  223C 00004080           1153      MOVE.L #DRKBROWN,D1
+00001D0C  4E4F                    1154      TRAP #15
+00001D0E  7050                    1155      MOVE.L #80,D0
+00001D10  7200                    1156      MOVE.L #BLACK,D1
+00001D12  4E4F                    1157      TRAP #15
+00001D14  4CDF 0003               1158      MOVEM.L (A7)+,D0-D1
+00001D18  4E75                    1159      RTS
+00001D1A                          1160      
+00001D1A                          1161  AMARILLOVERDOSO
+00001D1A  48E7 C000               1162      MOVEM.L D0-D1,-(A7)
+00001D1E  7051                    1163      MOVE.L #81,D0
+00001D20  223C 0000CEC6           1164      MOVE.L #GREENISHYELLOW,D1
+00001D26  4E4F                    1165      TRAP #15
+00001D28  7050                    1166      MOVE.L #80,D0
+00001D2A  7200                    1167      MOVE.L #BLACK,D1
+00001D2C  4E4F                    1168      TRAP #15
+00001D2E  4CDF 0003               1169      MOVEM.L (A7)+,D0-D1
+00001D32  4E75                    1170      RTS
+00001D34                          1171     
+00001D34                          1172  ************    
+00001D34                          1173   
+00001D34                          1174  * VARIABLES Y TEXTOS ASCII
+00004000                          1175      ORG $4000
+00004000                          1176  
+00004000= 23 23 23 23 23 23 ...   1177  MAPA1   DC.B '###### ',0   *# BORDE
+00004008= 23 40 20 20 20 23 ...   1178          DC.B '#@   ##',0   *@ PERSONAJE
+00004010= 23 20 24 24 20 20 ...   1179          DC.B '# $$  #',0   *$ CAJAS
+00004018= 23 20 23 2E 20 2E ...   1180          DC.B '# #. .#',0   *. DESTINO
+00004020= 23 20 20 20 20 20 ...   1181          DC.B '#     #',0   *% CAJA EN OBJETIVO
+00004028= 23 23 23 23 23 23 ...   1182          DC.B '#######',0,0 *+ PERSONAJE EN OBJETIVO
+00004031                          1183          
+00004032= 5449454D 504F2044 ...   1184  TIME    DC.L 'TIEMPO DE JUEGO: ',0
+0000404A                          1185  
+0000404A= 454E484F 52414255 ...   1186  FINAL   DC.L 'ENHORABUENA HAS GANADO EL JUEGO Y TU TIEMPO EN COMPLETARLO HA SIDO: ',0
+00004092                          1187   
+00004092                          1188      END    START
+
+No errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+ABAJO               14CE
+AMARILLO            1C84
+AMARILLOVERDOSO     1D1A
+ARRIBA              12FE
+BLACK               0
+BLANCO              1CE6
+BORRAMAPA           1A36
+BUCLE               1A5A
+BUCLEA1             14D4
+BUCLEA2             1304
+BUCLED              16B4
+BUCLEE              10F6
+BUCLEI              188C
+BUCLEPRINCIPAL      1028
+COMPROBARAYA1       1150
+COMPROBARAYA2       1194
+COMPROBARCAJAA1     154C
+COMPROBARCAJAA1F    15A4
+COMPROBARCAJAA1O    164C
+COMPROBARCAJAA2     137E
+COMPROBARCAJAA2F    13D2
+COMPROBARCAJAA2O    1478
+COMPROBARCAJAD      172E
+COMPROBARCAJADF     1782
+COMPROBARCAJADO     1828
+COMPROBARCAJAI      18FC
+COMPROBARCAJAIF     194A
+COMPROBARCAJAIO     19E0
+CONFIG              1000
+DELAY               10D0
+DERECHA             16AE
+DRKBROWN            4080
+DRKGRAY             404040
+ERROR               128E
+ERRORCAJA1          1218
+ERRORES             10F0
+FIJARCAJAA1         1584
+FIJARCAJAA1F        15DC
+FIJARCAJAA1O        1684
+FIJARCAJAA2         13B8
+FIJARCAJAA2F        140C
+FIJARCAJAA2O        14AA
+FIJARCAJAD          1764
+FIJARCAJADF         17B8
+FIJARCAJADO         185E
+FIJARCAJAI          1930
+FIJARCAJAIF         197E
+FIJARCAJAIO         1A12
+FINAL               404A
+FINMAPA             105C
+GREEN               FF00
+GREENISHYELLOW      CEC6
+GRIS                1C6A
+IZQUIERDA           1886
+LIGHTBROWN          4ABA
+MAPA1               4000
+MARRONCLARO         1CB8
+MARRONOSCURO        1D00
+MOVERABAJO          1534
+MOVERABAJOO         1634
+MOVERARRIBA         136A
+MOVERARRIBAO        1464
+MOVERCAJAA1         1564
+MOVERCAJAA1F        15BC
+MOVERCAJAA1O        1664
+MOVERCAJAA2         139E
+MOVERCAJAA2F        13F2
+MOVERCAJAA2O        1490
+MOVERCAJAD          1746
+MOVERCAJADF         179A
+MOVERCAJADO         1840
+MOVERCAJAI          1916
+MOVERCAJAIF         1964
+MOVERCAJAIO         19F8
+MOVERDERECHA        1714
+MOVERDERECHAO       180E
+MOVERIZQUIERDA      18D8
+MOVERIZQUIERDAO     19CE
+MOVEROBJABAJO       151C
+MOVEROBJABAJOO      161C
+MOVEROBJARRIBA      1356
+MOVEROBJARRIBA0     1450
+MOVEROBJDERECHA     16FA
+MOVEROBJDERECHAO    17F4
+MOVEROBJIZQUIERDA   18EA
+MOVEROBJIZQUIERDAO  19BC
+NEGRO               1CD2
+NOCAJA              1AB4
+NOCAJAE             110C
+NOCAJAFIJA          1AC8
+NOMURO              1A78
+NOOBJ               1AA0
+NOPERS              1A8C
+NOPERSA1            14F2
+NOPERSA2            1322
+NOPERSD             16D2
+NOPERSI             18AA
+NOPERSOBJ           1ADC
+NUEVAFILA           1AE6
+NUEVAFILAA1         16A4
+NUEVAFILAA2         14C4
+NUEVAFILAD          187C
+NUEVAFILAE          12F4
+NUEVAFILAI          1A2C
+ORIX                64
+ORIY                64
+PINTACAJA           1BBC
+PINTAMAPA           1A46
+PINTAMOZO           1B52
+PINTAMURO           1AFC
+PINTAOBJ            1C20
+SEGUNDO             10E6
+SHOWTIME            1C4A
+SICAJAE             1110
+SIGUIENTECAJA1      11DC
+SIGUIENTECAJA2      1254
+SIPERSA1            14F6
+SIPERSA1O           15FC
+SIPERSA2            1326
+SIPERSA2O           1426
+SIPERSD             16D6
+SIPERSDO            17D6
+SIPERSI             18AE
+SIPERSIO            1998
+SIZE                64
+START               1000
+TECLA               109A
+TIME                4032
+VERDE               1C9E
+WHITE               FFFFFF
+YELLOW              FFFF
